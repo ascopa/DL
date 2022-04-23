@@ -1,0 +1,36 @@
+2) generación de muestras mediante GANs
+
+
+p_data: fc distribución de datos originales
+p_g: fc distribución de datos generados (G(z))
+
+G(z): output red generadora
+D(z): output red discriminadora
+
+D(G(z)): output red discriminadora tomando el resultado de la generadora (prediction)
+
+La red generadora quiere generar imagenes-datos "perfectos" --> salida cercana a 1 (éxito) L(z) = -ln(prediction)
+La red discriminadora quiere detectar imagenes-datos "imperfectos" --> salida cercana a 0 (falla) L(z) = -ln(1-prediction)
+
+con cada función de costo se updatean los weighs y biases de cada red
+
+paquetes python:
+
+hyperopt (pip). Sirve para hacer randomsearch, parecido al gridsearch. Sirve para buscar hyperparameters
+
+binary crossentropy function
+
+
+
+
+
+generar una red y probar, nnv. no arrancar por gan en ppio
+keras for starters: hacer un clasificador y entrenarlo (se parece al discriminador de una GaN). Clasificador elige de un grupo de imagenes y me quedo con alguna, o un si o no si estaba la que quiero
+desp saltar a algo de imagenes (puede ser un clasificador)
+desp seguir con imagenes de optoacustica
+
+pytorch mas complejo al ppio pero mas "potente"
+
+
+plan ambicioso: generador que haga sinogramas (pseudo señales medidas) que al reconstruirse de imagenes
+plan mas trank: generar patrones de venas, que desp sirven para entrenar otras redes
