@@ -33,4 +33,12 @@ pytorch mas complejo al ppio pero mas "potente"
 
 
 plan ambicioso: generador que haga sinogramas (pseudo señales medidas) que al reconstruirse de imagenes
+<<<<<<< HEAD
 plan mas trank: generar patrones de venas, que desp sirven para entrenar otras redes
+=======
+plan mas trank: generar patrones de venas, que desp sirven para entrenar otras redes
+
+
+para mi, es una caja negra? Preciso saber de la fisica?
+cantidad de muestras, como uno elige la arquitectura? # de layers, neuronas?
+>>>>>>> 836c6ec (Adding notes)
