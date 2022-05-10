@@ -1,6 +1,7 @@
 import math
 
 import matplotlib.pyplot as plt
+import tensorflow
 from keras.layers import Dense, Dropout
 from keras.models import Sequential
 from keras.regularizers import l2
@@ -10,6 +11,8 @@ from numpy import loadtxt
 from tensorflow import keras
 
 plt.close('all')
+
+print("Num GPUs Available: ", len(tensorflow.config.list_physical_devices('GPU')))
 
 # load the dataset
 dataset = loadtxt('pima-indians-diabetes.csv', delimiter=',')
