@@ -276,6 +276,7 @@ d_model = define_discriminator()
 g_model = define_generator(latent_dim)
 # create the gan
 gan_model = define_gan(g_model, d_model)
+gan_model.summary()
 # load image data
 dataset = load_real_samples()
 # train model
