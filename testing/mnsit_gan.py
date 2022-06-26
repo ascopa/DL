@@ -280,4 +280,4 @@ gan_model.summary()
 # load image data
 dataset = load_real_samples()
 # train model
-train(g_model, d_model, gan_model, dataset, latent_dim)
+# train(g_model, d_model, gan_model, dataset, latent_dim)
