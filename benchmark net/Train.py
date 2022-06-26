@@ -24,7 +24,7 @@ def generate_fake_samples(g_model, gen_dataset, n_samples):
     return x, y
 
 
-def train(g_model, d_model, gan_model, dataset, gen_dataset, n_epochs=100, n_batch=1):
+def train(g_model, d_model, gan_model, dataset, gen_dataset, noise_size, image_size, n_epochs=100, n_batch=1):
     batch_per_epo = dataset.shape[0]
     print("Batchs per epoch:" + str(batch_per_epo))
     for i in range(n_epochs):
@@ -41,8 +41,8 @@ def train(g_model, d_model, gan_model, dataset, gen_dataset, n_epochs=100, n_bat
             # create inverted labels for the fake samples
             y_gan = ones((n_batch, 1))
             # update the generator via the discriminator's error
-            gan_img_input = gen_dataset[0][j].reshape((-1, 512, 512))
-            gan_noise_input = gen_dataset[1].reshape((-1, 400))
+            gan_img_input = gen_dataset[0][j].reshape((-1, image_size, image_size))
+            gan_noise_input = gen_dataset[1].reshape((-1, noise_size))
             _ = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
             g_loss = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
             # summarize loss on this batch
@@ -87,4 +87,4 @@ g_model = Nets.Generator([image_size, image_size, channel], [noise_size]).model
 # create the gan
 gan_model = Nets.Gan(g_model, d_model).model
 # train model
-train(g_model, d_model, gan_model, dataset, gen_dataset, noise_size)
+train(g_model, d_model, gan_model, dataset, gen_dataset, noise_size, image_size)
