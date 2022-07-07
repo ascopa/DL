@@ -1,26 +1,22 @@
+import os
+
 import numpy
 import numpy as np
+from PIL import Image
 from matplotlib import pyplot
 from numpy import expand_dims
 
+img_dir_source = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "augmented", "drive_data_128.npy")
+
+image_size = 128
 
 def get_real_data():
-    return numpy.load("../datasets/benchmark net/real_images.npy")
-
-
-def get_segmentation_data():
-    return numpy.load("../datasets/benchmark net/segmentation_images.npy")
+    return numpy.load(img_dir_source)
 
 
 def load_real_data():
     train_data = get_real_data()
-    # add channel dimension
-    x = expand_dims(train_data, axis=-1)
-    return x
-
-
-def load_segmentation_data():
-    train_data = get_segmentation_data()
+    pyplot.imshow(train_data[2].reshape(image_size, image_size))
     # add channel dimension
     x = expand_dims(train_data, axis=-1)
     return x

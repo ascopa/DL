@@ -1,7 +1,7 @@
 import tensorflow as tf
 from keras.layers import Input, Dense, Concatenate, ReLU, Conv2D, Conv2DTranspose, Reshape, BatchNormalization, Flatten, \
     Activation
-from keras.models import Model, Sequential
+from keras.models import Model
 from tensorflow import Tensor, keras
 
 
@@ -14,7 +14,7 @@ def relu_bn(inputs: Tensor) -> Tensor:
 w_initializer = tf.keras.initializers.TruncatedNormal(mean=0., stddev=0.02)
 
 
-def generator( img_shape, noise_shape):
+def generator(img_shape, noise_shape):
     filter = 64
     kernel = 4
     stride = 2
@@ -55,19 +55,10 @@ def generator( img_shape, noise_shape):
                      padding="same",
                      kernel_initializer=w_initializer)(l4)
     l5 = relu_bn(l5_conv)
-    # 512 filter
-    l6_conv = Conv2D(kernel_size=kernel,
-                     strides=stride,
-                     filters=8 * filter,
-                     padding="same",
-                     kernel_initializer=w_initializer)(l5)
-    l6 = relu_bn(l6_conv)
 
     ######################## Noise ######################################
 
     l1_noise_input = Input(shape=noise_shape)
-
-    # ruido = tf.keras.backend.random_normal
 
     l1_dense = Dense(4 * 4 * filter, kernel_initializer=w_initializer)(l1_noise_input)
     print(l1_dense.shape)
@@ -84,7 +75,7 @@ def generator( img_shape, noise_shape):
     l1_noise = relu_bn(l1_noise_conv)
     print(l1_noise.shape)
 
-    noisy_img = Concatenate()([l6, l1_noise])
+    noisy_img = Concatenate()([l5, l1_reshape])
 
     # 512 filter
     l7_conv = Conv2DTranspose(kernel_size=kernel,
@@ -94,7 +85,7 @@ def generator( img_shape, noise_shape):
                               kernel_initializer=w_initializer)(noisy_img)
     l7 = relu_bn(l7_conv)
 
-    l7_output = Concatenate(axis=-1)([l7, l5])
+    l7_output = Concatenate(axis=-1)([l7, l4])
 
     # 512 filter
     l8_conv = Conv2DTranspose(kernel_size=kernel,
@@ -104,7 +95,7 @@ def generator( img_shape, noise_shape):
                               kernel_initializer=w_initializer)(l7_output)
     l8 = relu_bn(l8_conv)
 
-    l8_output = Concatenate(axis=-1)([l8, l4])
+    l8_output = Concatenate(axis=-1)([l8, l3])
 
     # 256 filter
     l9_conv = Conv2DTranspose(kernel_size=kernel,
@@ -114,7 +105,7 @@ def generator( img_shape, noise_shape):
                               kernel_initializer=w_initializer)(l8_output)
     l9 = relu_bn(l9_conv)
 
-    l9_output = Concatenate(axis=-1)([l9, l3])
+    l9_output = Concatenate(axis=-1)([l9, l2])
 
     # 128 filter
     l10_conv = Conv2DTranspose(kernel_size=kernel,
@@ -124,25 +115,16 @@ def generator( img_shape, noise_shape):
                                kernel_initializer=w_initializer)(l9_output)
     l10 = relu_bn(l10_conv)
 
-    l10_output = Concatenate(axis=-1)([l10, l2])
+    l10_output = Concatenate(axis=-1)([l10, l1])
 
     # 64 filter
     l11_conv = Conv2DTranspose(kernel_size=kernel,
                                strides=stride,
-                               filters=filter,
-                               padding="same",
-                               kernel_initializer=w_initializer)(l10_output)
-    l11 = relu_bn(l11_conv)
-
-    l11_output = Concatenate(axis=-1)([l11, l1])
-
-    l12_conv = Conv2DTranspose(kernel_size=kernel,
-                               strides=stride,
                                filters=1,
                                padding="same",
-                               kernel_initializer=w_initializer)(l11_output)
+                               kernel_initializer=w_initializer)(l10_output)
 
-    gen_output = Activation('tanh')(l12_conv)
+    gen_output = Activation('tanh')(l11_conv)
 
     model = Model(inputs=[l1_input, l1_noise_input], outputs=gen_output)
     return model

@@ -1,5 +1,6 @@
 import random
 
+import numpy as np
 from PIL import Image
 from numpy import ones, zeros, vstack
 
@@ -12,8 +13,8 @@ def generate_real_samples(dataset, n_samples):
     ix = random.sample(range(0, dataset.shape[0]), n_samples)
     # retrieve selected images
     x = dataset[ix]
-    # img = Image.fromarray(x.reshape(512,512), 'L')
-    # img.show()
+    img = Image.fromarray(x[2].reshape(image_size, image_size), 'L')
+    img.show()
     # generate 'real' class labels (1)
     y = ones((n_samples, 1))
     return x, y
@@ -24,15 +25,15 @@ def generate_fake_samples(g_model, dataset, n_samples):
     seg_img = dataset[random.sample(range(0, dataset.shape[0]), n_samples)]
     noise = Utils.get_noise_data(n_samples, noise_size)
     x = g_model.predict([seg_img, noise])
-    # img = Image.fromarray(x.reshape(512,512), 'L')
-    # img.show()
+    img = Image.fromarray(x[2].reshape(image_size, image_size), 'L')
+    img.show()
     # create 'fake' class labels (0)
     y = zeros((n_samples, 1))
     return x, y
 
 
-def train(g_model, d_model, gan_model, real_img_dataset, seg_img_dataset, noise_size, image_size, n_epochs=100, n_batch=1):
-    batch_per_epo = real_img_dataset.shape[0]
+def train(g_model, d_model, gan_model, real_img_dataset, seg_img_dataset, noise_size, image_size, n_batch, n_epochs=100):
+    batch_per_epo = int(real_img_dataset.shape[0] / n_batch)
     print("Batchs per epoch:" + str(batch_per_epo))
     for i in range(n_epochs):
         for j in range(batch_per_epo):
@@ -42,19 +43,18 @@ def train(g_model, d_model, gan_model, real_img_dataset, seg_img_dataset, noise_
             X_fake, y_fake = generate_fake_samples(g_model, seg_img_dataset, n_batch)
             # create training set for the discriminator
             X, y = vstack((X_real, X_fake)), vstack((y_real, y_fake))
-            # print(X.shape, y.shape)
             # update discriminator model weights
-            d_loss, d_accuracy = d_model.train_on_batch(X, y)
+            d_loss, d_acc = d_model.train_on_batch(X, y)
             # create inverted labels for the fake samples so the discriminator thinks they are real
             y_gan = ones((n_batch, 1))
             # get gan input
-            gan_img_input = seg_img_dataset[j].reshape((-1, image_size, image_size, channel))
-            gan_noise_input = Utils.get_noise_data(batch_size, noise_size)
+            gan_img_input = seg_img_dataset[random.sample(range(0, seg_img_dataset.shape[0]), n_batch)].reshape((-1, image_size, image_size, channel))
+            gan_noise_input = Utils.get_noise_data(n_batch, noise_size)
             # update generator weights twice
             _ = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
             g_loss = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
             # summarize loss on this batch
-            print('>%d, %d/%d, d=%.3f, g_0=%.3f, g_1=%.3f' % (i + 1, j + 1, batch_per_epo, d_loss, g_loss[0], g_loss[1]))
+            print('>%d, %d/%d, d_l=%.3f, d_a=%.3f, g=%.3f' % (i + 1, j + 1, batch_per_epo, d_loss, d_acc, g_loss[0]))
             # print('>%d, %d/%d, d=%.3f, a=%.3f' % (i + 1, j + 1, batch_per_epo, d_loss, d_accuracy))
             # evaluate the model performance, sometimes
         if (i + 1) % 10 == 0:
@@ -83,12 +83,11 @@ def summarize_performance(epoch, g_model, d_model, real_img_dataset, seg_img_dat
 
 
 noise_size = 400
-image_size = 512
-batch_size = 1
+image_size = 128
+batch_size = 5
 channel = 1
 # load data
 real_img_dataset = Utils.load_real_data()
-seg_img_dataset = Utils.load_segmentation_data()
 # create the discriminator
 d_model = Nets.discriminator([image_size, image_size, channel])
 # d_model.summary()
@@ -103,4 +102,4 @@ with open("model.json", "w") as json_file:
     json_file.write(model_json)
 
 # train model
-train(g_model, d_model, gan_model, real_img_dataset, seg_img_dataset, noise_size, image_size)
+train(g_model, d_model, gan_model, real_img_dataset, real_img_dataset, noise_size, image_size, batch_size)
