@@ -8,9 +8,9 @@ def get_real_data():
     return numpy.load("../datasets/benchmark net/real_images.npy")
 
 
+
 def get_segmentation_data():
     return numpy.load("../datasets/benchmark net/segmentation_images.npy")
-
 
 def load_real_data():
     train_data = get_real_data()
