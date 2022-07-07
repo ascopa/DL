@@ -1,1 +1,6 @@
 *.iml
+*.npy
+*.jpg
+*.png
+*.tif
+*.h5
