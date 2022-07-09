@@ -2,6 +2,7 @@ import random
 
 import numpy as np
 from PIL import Image
+from matplotlib import pyplot
 from numpy import ones, zeros, vstack
 
 import Nets
@@ -13,8 +14,8 @@ def generate_real_samples(dataset, n_samples):
     ix = random.sample(range(0, dataset.shape[0]), n_samples)
     # retrieve selected images
     x = dataset[ix]
-    img = Image.fromarray(x[2].reshape(image_size, image_size), 'L')
-    img.show()
+    # pyplot.imshow(x[2],cmap="gray")
+    # pyplot.show()
     # generate 'real' class labels (1)
     y = ones((n_samples, 1))
     return x, y
@@ -25,8 +26,8 @@ def generate_fake_samples(g_model, dataset, n_samples):
     seg_img = dataset[random.sample(range(0, dataset.shape[0]), n_samples)]
     noise = Utils.get_noise_data(n_samples, noise_size)
     x = g_model.predict([seg_img, noise])
-    img = Image.fromarray(x[2].reshape(image_size, image_size), 'L')
-    img.show()
+    # pyplot.imshow(x[2],cmap="gray")
+    # pyplot.show()
     # create 'fake' class labels (0)
     y = zeros((n_samples, 1))
     return x, y
@@ -51,18 +52,18 @@ def train(g_model, d_model, gan_model, real_img_dataset, seg_img_dataset, noise_
             gan_img_input = seg_img_dataset[random.sample(range(0, seg_img_dataset.shape[0]), n_batch)].reshape((-1, image_size, image_size, channel))
             gan_noise_input = Utils.get_noise_data(n_batch, noise_size)
             # update generator weights twice
-            _ = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
-            g_loss = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
+            # _ = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
+            # g_loss = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
             # summarize loss on this batch
-            print('>%d, %d/%d, d_l=%.3f, d_a=%.3f, g=%.3f' % (i + 1, j + 1, batch_per_epo, d_loss, d_acc, g_loss[0]))
-            # print('>%d, %d/%d, d=%.3f, a=%.3f' % (i + 1, j + 1, batch_per_epo, d_loss, d_accuracy))
+            # print('>%d, %d/%d, d_l=%.3f, d_a=%.3f, g=%.3f' % (i + 1, j + 1, batch_per_epo, d_loss, d_acc, g_loss[0]))
+            print('>%d, %d/%d, d=%.3f, a=%.3f' % (i + 1, j + 1, batch_per_epo, d_loss, d_acc))
             # evaluate the model performance, sometimes
         if (i + 1) % 10 == 0:
             summarize_performance(i, g_model, d_model, real_img_dataset, seg_img_dataset)
 
 
 # evaluate the discriminator, plot generated images, save generator model
-def summarize_performance(epoch, g_model, d_model, real_img_dataset, seg_img_dataset, n_samples=1):
+def summarize_performance(epoch, g_model, d_model, real_img_dataset, seg_img_dataset, n_samples=15):
     # prepare real samples
     X_real, y_real = generate_real_samples(real_img_dataset, n_samples)
     # evaluate discriminator on real examples

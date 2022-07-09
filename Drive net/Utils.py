@@ -16,7 +16,7 @@ def get_real_data():
 
 def load_real_data():
     train_data = get_real_data()
-    pyplot.imshow(train_data[2].reshape(image_size, image_size))
+    # pyplot.imshow(train_data[2])
     # add channel dimension
     x = expand_dims(train_data, axis=-1)
     return x
