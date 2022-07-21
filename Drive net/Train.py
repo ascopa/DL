@@ -40,12 +40,13 @@ def train(g_model, d_model, gan_model, real_img_dataset, seg_img_dataset, noise_
         for j in range(batch_per_epo):
             # get randomly selected 'real' samples
             X_real, y_real = generate_real_samples(real_img_dataset, n_batch)
+            # train discriminator on real samples
+            d_r_loss, d_r_acc = d_model.train_on_batch(X_real, y_real)
             # generate 'fake' examples
             X_fake, y_fake = generate_fake_samples(g_model, seg_img_dataset, n_batch)
-            # create training set for the discriminator
-            X, y = vstack((X_real, X_fake)), vstack((y_real, y_fake))
-            # update discriminator model weights
-            d_loss, d_acc = d_model.train_on_batch(X, y)
+            # X, y = vstack((X_real, X_fake)), vstack((y_real, y_fake))
+            # train discriminator on real samples
+            d_f_loss, d_f_acc = d_model.train_on_batch(X_fake, y_fake)
             # create inverted labels for the fake samples so the discriminator thinks they are real
             y_gan = ones((n_batch, 1))
             # get gan input
@@ -55,8 +56,9 @@ def train(g_model, d_model, gan_model, real_img_dataset, seg_img_dataset, noise_
             # _ = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
             # g_loss = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
             # summarize loss on this batch
-            # print('>%d, %d/%d, d_l=%.3f, d_a=%.3f, g=%.3f' % (i + 1, j + 1, batch_per_epo, d_loss, d_acc, g_loss[0]))
-            print('>%d, %d/%d, d=%.3f, a=%.3f' % (i + 1, j + 1, batch_per_epo, d_loss, d_acc))
+            # print('>%d, %d/%d, dr=%.3f, ar=%.3f, df=%.3f, af=%.3f, dg=%.3f' % (i + 1, j + 1, batch_per_epo, d_r_loss, d_r_acc, d_f_loss, d_f_acc, g_loss[0]))
+            print('>%d, %d/%d, dr=%.3f, ar=%.3f, df=%.3f, af=%.3f' % (i + 1, j + 1, batch_per_epo, d_r_loss, d_r_acc, d_f_loss, d_f_acc))
+
             # evaluate the model performance, sometimes
         if (i + 1) % 10 == 0:
             summarize_performance(i, g_model, d_model, real_img_dataset, seg_img_dataset)
@@ -84,8 +86,8 @@ def summarize_performance(epoch, g_model, d_model, real_img_dataset, seg_img_dat
 
 
 noise_size = 400
-image_size = 128
-batch_size = 5
+image_size = 512
+batch_size = 10
 channel = 1
 # load data
 real_img_dataset = Utils.load_real_data()
@@ -93,14 +95,14 @@ real_img_dataset = Utils.load_real_data()
 d_model = Nets.discriminator([image_size, image_size, channel])
 # d_model.summary()
 # create the generator
-g_model = Nets.generator([image_size, image_size, channel], [noise_size])
+# g_model = Nets.generator([image_size, image_size, channel], [noise_size])
 # g_model.summary()
 # create the gan
-gan_model = Nets.gan(g_model, d_model)
+# gan_model = Nets.gan(g_model, d_model)
 
-model_json = g_model.to_json()
-with open("model.json", "w") as json_file:
-    json_file.write(model_json)
+# model_json = g_model.to_json()
+# with open("model.json", "w") as json_file:
+#     json_file.write(model_json)
 
 # train model
-train(g_model, d_model, gan_model, real_img_dataset, real_img_dataset, noise_size, image_size, batch_size)
+train(d_model, d_model, d_model, real_img_dataset, real_img_dataset, noise_size, image_size, batch_size)

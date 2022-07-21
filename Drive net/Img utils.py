@@ -1,4 +1,5 @@
 import os
+import shutil
 from os import listdir
 import tifffile
 
@@ -10,10 +11,10 @@ from matplotlib import pyplot
 
 img_dir_source = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "sources")
 img_dir_save = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "augmented")
-mask = 128
+mask = 512
 overlap = 25
 color_black_threshold = 50
-black_amount_threshold = 0.7
+black_amount_threshold = 0.25
 real_images = list()
 
 
@@ -46,17 +47,20 @@ def crop_imgs_from_source(dir, data_array, label):
                     cropped = img_data.crop((iterator_x, iterator_y, iterator_x + mask, iterator_y + mask))
                     # cropped = img_data[iterator_x:iterator_x + mask, iterator_y:iterator_y + mask]
                     if not isMostlyBlack(cropped.getdata()):
-                        img = numpy.asarray(cropped)/255
+                        img = numpy.asarray(cropped) / 255
                         data_array.append(img)
-                        pyplot.imshow(img, cmap="gray")
-                        pyplot.show()
-                    # cropped.save(img_dir_save + os.sep + label + "_" + filename_test + ".jpg")
+                        # pyplot.imshow(img, cmap="gray")
+                        # pyplot.show()
+                        cropped.save(img_dir_save + os.sep + label + "_" + filename_test + ".jpg")
                     img_count = 1 + img_count
                     iterator_x = iterator_x + mask - overlap
                 iterator_y = iterator_y + mask - overlap
                 iterator_x = 0
             iterator_y = 0
 
+
+shutil.rmtree(img_dir_save)
+os.mkdir(img_dir_save, 0o666)
 
 crop_imgs_from_source(img_dir_source, real_images, "drive")
 img_filename = "drive_data_" + str(mask)
