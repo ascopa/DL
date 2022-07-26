@@ -60,6 +60,8 @@ def generator(img_shape, noise_shape):
 
     l1_noise_input = Input(shape=noise_shape)
 
+    # ruido = tf.keras.backend.random_normal
+
     l1_dense = Dense(4 * 4 * filter, kernel_initializer=w_initializer)(l1_noise_input)
 
     l1_reshape = Reshape((4, 4, filter))(l1_dense)

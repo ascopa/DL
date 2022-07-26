@@ -70,10 +70,8 @@ def generator( img_shape, noise_shape):
     # ruido = tf.keras.backend.random_normal
 
     l1_dense = Dense(4 * 4 * filter, kernel_initializer=w_initializer)(l1_noise_input)
-    print(l1_dense.shape)
 
     l1_reshape = Reshape((4, 4, filter))(l1_dense)
-    print(l1_reshape.shape)
 
     # 128 filter
     l1_noise_conv = Conv2DTranspose(kernel_size=kernel,
@@ -82,7 +80,6 @@ def generator( img_shape, noise_shape):
                                     padding="same",
                                     kernel_initializer=w_initializer)(l1_reshape)
     l1_noise = relu_bn(l1_noise_conv)
-    print(l1_noise.shape)
 
     noisy_img = Concatenate()([l6, l1_noise])
 
@@ -161,7 +158,6 @@ def discriminator(img_shape):
                      padding="same",
                      kernel_initializer=w_initializer)(input_layer)
     l1 = relu_bn(l1_conv)
-    print(l1.shape)
 
     # 64 filter
     l2_conv = Conv2D(kernel_size=kernel,
@@ -170,7 +166,6 @@ def discriminator(img_shape):
                      padding="same",
                      kernel_initializer=w_initializer)(l1)
     l2 = relu_bn(l2_conv)
-    print(l2.shape)
 
     # 128 filter
     l3_conv = Conv2D(kernel_size=kernel,
@@ -179,7 +174,6 @@ def discriminator(img_shape):
                      padding="same",
                      kernel_initializer=w_initializer)(l2)
     l3 = relu_bn(l3_conv)
-    print(l3.shape)
 
     # 256 filter
     l4_conv = Conv2D(kernel_size=kernel,
@@ -188,7 +182,6 @@ def discriminator(img_shape):
                      padding="same",
                      kernel_initializer=w_initializer)(l3)
     l4 = relu_bn(l4_conv)
-    print(l4.shape)
 
     # 512 filter
     l5_conv = Conv2D(kernel_size=kernel,
@@ -197,10 +190,8 @@ def discriminator(img_shape):
                      padding="same",
                      kernel_initializer=w_initializer)(l4)
     l5 = relu_bn(l5_conv)
-    print(l5.shape)
 
     flatten_layer = Flatten()(l5)
-    print(flatten_layer.shape)
     dis_output = Dense(1, activation='sigmoid', kernel_initializer=w_initializer)(flatten_layer)
 
     model = Model(inputs=input_layer, outputs=dis_output)

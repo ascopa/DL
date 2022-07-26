@@ -26,12 +26,12 @@ def save_plot(examples, n):
         pyplot.close()
 
 
-samples = 100
-image_size = 128
+samples = 20
+image_size = 512
 channel = 1
 noise_size = 400
 # load model
-model = load_model('dis_model_010.h5')
+model = load_model('dis_model_100.h5')
 # generate images
 real_images = Utils.load_real_data()
 g_model = Nets.generator([image_size, image_size, channel], [noise_size])

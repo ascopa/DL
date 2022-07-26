@@ -6,9 +6,9 @@ from PIL import Image
 from matplotlib import pyplot
 from numpy import expand_dims
 
-img_dir_source = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "augmented", "drive_data_512.npy")
+img_dir_source = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "augmented", "drive_data_128.npy")
 
-image_size = 512
+image_size = 128
 
 def get_real_data():
     return numpy.load(img_dir_source)

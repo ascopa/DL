@@ -86,7 +86,7 @@ def summarize_performance(epoch, g_model, d_model, real_img_dataset, seg_img_dat
 
 
 noise_size = 400
-image_size = 512
+image_size = 128
 batch_size = 10
 channel = 1
 # load data
@@ -95,14 +95,14 @@ real_img_dataset = Utils.load_real_data()
 d_model = Nets.discriminator([image_size, image_size, channel])
 # d_model.summary()
 # create the generator
-# g_model = Nets.generator([image_size, image_size, channel], [noise_size])
+g_model = Nets.generator([image_size, image_size, channel], [noise_size])
 # g_model.summary()
 # create the gan
-# gan_model = Nets.gan(g_model, d_model)
+gan_model = Nets.gan(g_model, d_model)
 
-# model_json = g_model.to_json()
-# with open("model.json", "w") as json_file:
-#     json_file.write(model_json)
+model_json = g_model.to_json()
+with open("model.json", "w") as json_file:
+    json_file.write(model_json)
 
 # train model
-train(d_model, d_model, d_model, real_img_dataset, real_img_dataset, noise_size, image_size, batch_size)
+train(g_model, d_model, gan_model, real_img_dataset, real_img_dataset, noise_size, image_size, batch_size)
