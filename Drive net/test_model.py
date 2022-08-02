@@ -26,28 +26,26 @@ def save_plot(examples, n):
         pyplot.close()
 
 
-samples = 20
-image_size = 512
+samples = 100
 channel = 1
-noise_size = 400
 # load model
-model = load_model('dis_model_100.h5')
+discriminator_model = load_model('dis_model_100.h5')
+generator_model = load_model('gen_model_100.h5')
 # generate images
 real_images = Utils.load_real_data()
-g_model = Nets.generator([image_size, image_size, channel], [noise_size])
-noise = Utils.get_noise_data(samples, noise_size)
-fake_images = g_model.predict([real_images[0:samples], noise])
+noise = Utils.get_noise_data(samples)
+fake_images = generator_model.predict([real_images[0:samples], noise])
 y_real = ones((samples, 1))
 y_fake = zeros((samples, 1))
 
 #predict
-_, real_images_acc = model.evaluate(real_images[0:samples], y_real)
-_, fake_images_acc = model.evaluate(fake_images, y_fake)
-# numpy.save("generated_images", generated_images)
+_, real_images_acc = discriminator_model.evaluate(real_images[0:samples], y_real)
+_, fake_images_acc = discriminator_model.evaluate(fake_images, y_fake)
+numpy.save("generated_images", fake_images)
 
 print("real acc:" + str(real_images_acc))
 print("fake acc:" + str(fake_images_acc))
 
 
 # plot the result
-# save_plot(numpy.load("generated_images.npy"), samples)
+save_plot(numpy.load("generated_images.npy"), samples)

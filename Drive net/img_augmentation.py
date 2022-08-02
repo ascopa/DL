@@ -12,7 +12,7 @@ img_dir_source = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL",
 img_dir_save = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "augmented")
 
 mask = 128
-overlap = 25
+overlap = 15
 color_black_threshold = 50
 black_amount_threshold = 0.3
 real_images = list()
@@ -77,12 +77,12 @@ def apply_transforms(image, data_array):
     data_array.append(img1)
     data_array.append(img2)
     data_array.append(img3)
-    # pyplot.imshow(img1, cmap="gray")
-    # pyplot.show()
-    # pyplot.imshow(img2, cmap="gray")
-    # pyplot.show()
-    # pyplot.imshow(img3, cmap="gray")
-    # pyplot.show()
+    pyplot.imshow(img1, cmap="gray")
+    pyplot.show()
+    pyplot.imshow(img2, cmap="gray")
+    pyplot.show()
+    pyplot.imshow(img3, cmap="gray")
+    pyplot.show()
 
 
 def augment_images(data_array):

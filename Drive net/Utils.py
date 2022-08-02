@@ -6,9 +6,11 @@ from PIL import Image
 from matplotlib import pyplot
 from numpy import expand_dims
 
-img_dir_source = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "augmented", "drive_data_128.npy")
-
 image_size = 128
+noise_size = 400
+
+img_dir_source = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "augmented", "drive_data_" + str(image_size) + ".npy")
+
 
 def get_real_data():
     return numpy.load(img_dir_source)
@@ -22,8 +24,8 @@ def load_real_data():
     return x
 
 
-def get_noise_data(batch_size, z_size):
-    return np.random.normal(0, 0.001, size=[batch_size, z_size]).astype(np.float32)
+def get_noise_data(batch_size):
+    return np.random.normal(0, 0.001, size=[batch_size, noise_size]).astype(np.float32)
 
 
 def save_plot(examples, epoch, n=10):

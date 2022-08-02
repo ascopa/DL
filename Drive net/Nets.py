@@ -179,7 +179,7 @@ def discriminator(img_shape):
     dis_output = Dense(1, activation='sigmoid', kernel_initializer=w_initializer)(flatten_layer)
 
     model = Model(inputs=input_layer, outputs=dis_output)
-    opt = keras.optimizers.SGD(learning_rate=0.0002)
+    opt = keras.optimizers.SGD(learning_rate=0.00005)
     model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
     return model
 
@@ -188,6 +188,6 @@ def gan(gen, dis):
     # make weights in the discriminator not trainable
     dis.trainable = False
     model = Model(inputs=gen.input, outputs=dis(gen.output))
-    opt = keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5)
+    opt = keras.optimizers.Adam(learning_rate=0.0004, beta_1=0.5)
     model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
     return model
