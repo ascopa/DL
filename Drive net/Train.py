@@ -45,19 +45,20 @@ def train(g_model, d_model, gan_model, real_img_dataset, seg_img_dataset, image_
             # generate 'fake' examples
             X_fake, y_fake = generate_fake_samples(g_model, seg_img_dataset, n_batch)
             X, y = vstack((X_real, X_fake)), vstack((y_real, y_fake))
-            # train discriminator on real samples
+            # train discriminator on fake samples
             d_f_loss, d_f_acc = d_model.train_on_batch(X_fake, y_fake)
             # create inverted labels for the fake samples so the discriminator thinks they are real
             y_gan = ones((n_batch, 1))
             # get gan input
-            gan_img_input = seg_img_dataset[random.sample(range(0, seg_img_dataset.shape[0]), n_batch)].reshape((-1, image_size, image_size, channel))
+            gan_img_input = seg_img_dataset[random.sample(range(0, seg_img_dataset.shape[0]), n_batch)].reshape(
+                (-1, image_size, image_size, channel))
             gan_noise_input = Utils.get_noise_data(n_batch)
             # update generator weights twice
             _ = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
             g_loss = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
             # summarize loss on this batch
-            # print('>%d, %d/%d, dr=%.3f, ar=%.3f, df=%.3f, af=%.3f, dg=%.3f' % (i + 1, j + 1, batch_per_epo, d_r_loss, d_r_acc, d_f_loss, d_f_acc, g_loss[0]))
-            print('>%d, %d/%d, dr=%.3f, ar=%.3f' % (i + 1, j + 1, batch_per_epo, d_r_loss, d_r_acc,  ))
+            print('>%d, %d/%d, dr=%.3f, ar=%.3f, df=%.3f, af=%.3f, dg=%.3f' % (i + 1, j + 1, batch_per_epo, d_r_loss, d_r_acc, d_f_loss, d_f_acc, g_loss[0]))
+            # print('>%d, %d/%d, dr=%.3f, ar=%.3f' % (i + 1, j + 1, batch_per_epo, d_r_loss, d_r_acc))
 
             # evaluate the model performance, sometimes
         if (i + 1) % 10 == 0:
@@ -94,7 +95,7 @@ d_model = Nets.discriminator([Utils.image_size, Utils.image_size, channel])
 d_model.summary()
 # create the generator
 g_model = Nets.generator([Utils.image_size, Utils.image_size, channel], [Utils.noise_size])
-g_model.summary()
+# g_model.summary()
 # create the gan
 gan_model = Nets.gan(g_model, d_model)
 

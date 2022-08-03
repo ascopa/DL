@@ -6,7 +6,7 @@ from PIL import Image
 from matplotlib import pyplot
 from numpy import expand_dims
 
-image_size = 128
+image_size = 256
 noise_size = 400
 
 img_dir_source = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "augmented", "drive_data_" + str(image_size) + ".npy")

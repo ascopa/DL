@@ -26,7 +26,7 @@ def save_plot(examples, n):
         pyplot.close()
 
 
-samples = 100
+samples = 50
 channel = 1
 # load model
 discriminator_model = load_model('dis_model_100.h5')
@@ -39,12 +39,12 @@ y_real = ones((samples, 1))
 y_fake = zeros((samples, 1))
 
 #predict
-_, real_images_acc = discriminator_model.evaluate(real_images[0:samples], y_real)
-_, fake_images_acc = discriminator_model.evaluate(fake_images, y_fake)
+real = discriminator_model.evaluate(real_images[0:samples], y_real)
+fake = discriminator_model.evaluate(fake_images, y_fake)
 numpy.save("generated_images", fake_images)
 
-print("real acc:" + str(real_images_acc))
-print("fake acc:" + str(fake_images_acc))
+# print("real acc:" + str(real_images_acc))
+# print("fake acc:" + str(fake_images_acc))
 
 
 # plot the result
