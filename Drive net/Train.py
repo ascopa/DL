@@ -56,8 +56,7 @@ def train(g_model, d_model, gan_model, real_img_dataset, seg_img_dataset, image_
             _ = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
             g_loss = gan_model.train_on_batch([gan_img_input, gan_noise_input], y_gan)
             # summarize loss on this batch
-            # print('>%d, %d/%d, dr=%.3f, ar=%.3f, df=%.3f, af=%.3f, dg=%.3f' % (i + 1, j + 1, batch_per_epo, d_r_loss, d_r_acc, d_f_loss, d_f_acc, g_loss[0]))
-            print('>%d, %d/%d, dr=%.3f, ar=%.3f' % (i + 1, j + 1, batch_per_epo, d_r_loss, d_r_acc,  ))
+            print('>%d, %d/%d, dis_real_loss=%.3f, dis_real_acc=%.3f, dis_fake_loss=%.3f, dis_fake_acc=%.3f, gen_loss=%.3f' % (i + 1, j + 1, batch_per_epo, d_r_loss, d_r_acc, d_f_loss, d_f_acc, g_loss[0]))
 
             # evaluate the model performance, sometimes
         if (i + 1) % 10 == 0:
@@ -91,10 +90,10 @@ channel = 1
 real_img_dataset = Utils.load_real_data()
 # create the discriminator
 d_model = Nets.discriminator([Utils.image_size, Utils.image_size, channel])
-d_model.summary()
+# d_model.summary()
 # create the generator
 g_model = Nets.generator([Utils.image_size, Utils.image_size, channel], [Utils.noise_size])
-g_model.summary()
+# g_model.summary()
 # create the gan
 gan_model = Nets.gan(g_model, d_model)
 
