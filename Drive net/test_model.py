@@ -29,8 +29,9 @@ def save_plot(examples, n):
 samples = 100
 channel = 1
 # load model
-discriminator_model = load_model('dis_model_050.h5')
-generator_model = load_model('gen_model_040.h5')
+const = Nets.ClipConstraint(0.01)
+# discriminator_model = load_model('dis_model_070.h5', custom_objects={"kernel_constraint": const})
+generator_model = load_model('gen_model_050.h5')
 # generate images
 real_images = Utils.load_real_data()
 noise = Utils.get_noise_data(samples)
@@ -38,14 +39,14 @@ fake_images = generator_model.predict([real_images[0:samples], noise])
 y_real = ones((samples, 1))
 y_fake = zeros((samples, 1))
 
-#predict
-_, real_images_acc = discriminator_model.evaluate(real_images[0:samples], y_real)
-_, fake_images_acc = discriminator_model.evaluate(fake_images, y_fake)
-# numpy.save("generated_images", fake_images)
+# #predict
+# _, real_images_acc = discriminator_model.evaluate(real_images[0:samples], y_real)
+# _, fake_images_acc = discriminator_model.evaluate(fake_images, y_fake)
+numpy.save("generated_images", fake_images)
 
-print("real acc:" + str(real_images_acc))
-print("fake acc:" + str(fake_images_acc))
+# print("real acc:" + str(real_images_acc))
+# print("fake acc:" + str(fake_images_acc))
 
 
 # plot the result
-# save_plot(numpy.load("generated_images.npy"), samples)
+save_plot(numpy.load("generated_images.npy"), samples)

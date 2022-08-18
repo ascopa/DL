@@ -1,4 +1,6 @@
 import tensorflow as tf
+from keras import backend
+from keras.constraints import Constraint
 from keras.layers import Input, Dense, Concatenate, ReLU, Conv2D, Conv2DTranspose, Reshape, BatchNormalization, Flatten, \
     Activation
 from keras.models import Model
@@ -12,6 +14,25 @@ def relu_bn(inputs: Tensor) -> Tensor:
 
 
 w_initializer = tf.keras.initializers.TruncatedNormal(mean=0., stddev=0.02)
+
+
+def wasserstein_loss(y_true, y_pred):
+    return backend.mean(y_true * y_pred)
+
+
+# clip model weights to a given hypercube
+class ClipConstraint(Constraint):
+    # set clip value when initialized
+    def __init__(self, clip_value):
+        self.clip_value = clip_value
+
+    # clip model weights to hypercube
+    def __call__(self, weights):
+        return backend.clip(weights, -self.clip_value, self.clip_value)
+
+    # get the config
+    def get_config(self):
+        return {'clip_value': self.clip_value}
 
 
 def generator(img_shape, noise_shape):
@@ -133,6 +154,7 @@ def discriminator(img_shape):
     filter = 32
     kernel = 4
     stride = 2
+    const = ClipConstraint(0.01)
     input_layer = Input(shape=img_shape)
 
     # 32 filter
@@ -140,7 +162,8 @@ def discriminator(img_shape):
                      strides=stride,
                      filters=filter,
                      padding="same",
-                     kernel_initializer=w_initializer)(input_layer)
+                     kernel_initializer=w_initializer,
+                     kernel_constraint=const)(input_layer)
     l1 = relu_bn(l1_conv)
 
     # 64 filter
@@ -148,7 +171,8 @@ def discriminator(img_shape):
                      strides=stride,
                      filters=2 * filter,
                      padding="same",
-                     kernel_initializer=w_initializer)(l1)
+                     kernel_initializer=w_initializer,
+                     kernel_constraint=const)(l1)
     l2 = relu_bn(l2_conv)
 
     # 128 filter
@@ -156,7 +180,8 @@ def discriminator(img_shape):
                      strides=stride,
                      filters=4 * filter,
                      padding="same",
-                     kernel_initializer=w_initializer)(l2)
+                     kernel_initializer=w_initializer,
+                     kernel_constraint=const)(l2)
     l3 = relu_bn(l3_conv)
 
     # 256 filter
@@ -164,7 +189,8 @@ def discriminator(img_shape):
                      strides=stride,
                      filters=8 * filter,
                      padding="same",
-                     kernel_initializer=w_initializer)(l3)
+                     kernel_initializer=w_initializer,
+                     kernel_constraint=const)(l3)
     l4 = relu_bn(l4_conv)
 
     # 512 filter
@@ -172,15 +198,16 @@ def discriminator(img_shape):
                      strides=stride,
                      filters=16 * filter,
                      padding="same",
-                     kernel_initializer=w_initializer)(l4)
+                     kernel_initializer=w_initializer,
+                     kernel_constraint=const)(l4)
     l5 = relu_bn(l5_conv)
 
     flatten_layer = Flatten()(l5)
-    dis_output = Dense(1, activation='sigmoid', kernel_initializer=w_initializer)(flatten_layer)
+    dis_output = Dense(1, activation='linear', kernel_initializer=w_initializer)(flatten_layer)
 
     model = Model(inputs=input_layer, outputs=dis_output)
-    opt = keras.optimizers.SGD(learning_rate=0.0001)
-    model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+    opt = keras.optimizers.RMSprop(learning_rate=0.00005)
+    model.compile(optimizer=opt, loss=wasserstein_loss, metrics=['accuracy'])
     return model
 
 
@@ -188,6 +215,6 @@ def gan(gen, dis):
     # make weights in the discriminator not trainable
     dis.trainable = False
     model = Model(inputs=gen.input, outputs=dis(gen.output))
-    opt = keras.optimizers.Adam(learning_rate=0.0005, beta_1=0.5)
-    model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+    opt = keras.optimizers.RMSprop(learning_rate=0.00005)
+    model.compile(optimizer=opt, loss=wasserstein_loss, metrics=['accuracy'])
     return model
