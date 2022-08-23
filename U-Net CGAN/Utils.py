@@ -43,7 +43,7 @@ def generate_real_samples(dataset, n_samples):
     # select images and labels
     X, labels = images[ix], labels[ix]
     # generate class labels
-    y = ones((n_samples, 1))
+    y = -ones((n_samples, 1))
     return [X, labels], y
 
 
@@ -65,7 +65,7 @@ def generate_fake_samples(generator, latent_dim, n_samples):
     # predict outputs
     images = generator.predict([z_input, labels_input])
     # create class labels
-    y = zeros((n_samples, 1))
+    y = ones((n_samples, 1))
     return [images, labels_input], y
 
 

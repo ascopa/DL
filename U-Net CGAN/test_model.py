@@ -10,13 +10,13 @@ from numpy import ones, zeros
 import Utils
 
 # Params to modify before testing
-model_to_test = 'gen_model_100.h5'
-item_label = Utils.FashionLabel.Sneaker
+model_to_test = 'gen_model_46800.h5'
+item_label = Utils.FashionLabel.Coat
 
 # Create and save files of test execution
 now = datetime.now()
-
-parent_dir = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "Drive net", "generated images")
+# TODO poner bien el path del parent dir
+parent_dir = os.path.join(os.getcwd(), "generated images")
 directory = str(item_label) + " - " + now.strftime("%d%m%Y-%H%M%S")
 test_model_directory = os.path.join(parent_dir, directory)
 os.mkdir(test_model_directory)
