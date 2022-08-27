@@ -3,6 +3,7 @@ import os
 import numpy
 import numpy as np
 from PIL import Image
+from keras_preprocessing.image import ImageDataGenerator
 from matplotlib import pyplot
 from numpy import expand_dims
 from numpy import ones
@@ -14,7 +15,7 @@ from numpy.random import randn
 
 image_size = 128
 noise_size = 400
-
+dataset_labels = 7
 # img_dir_source = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "augmented",
 #                               "drive_data_" + str(image_size) + ".npy")
 #
@@ -22,8 +23,18 @@ noise_size = 400
 # def get_real_data():
 #     return numpy.load(img_dir_source)
 
+# Define datagen. Here we can define any transformations we want to apply to images
+datagen = ImageDataGenerator()
 
-def load_real_data():
+# define training directory that contains subfolders
+train_dir = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "HAM10000", "data",
+                         "reorganized")
+
+
+# USe flow_from_directory
+
+
+def load_real_data_old():
     # load dataset
     (trainX, trainy), (_, _) = load_data()
     # expand to 3d, e.g. add channels
@@ -35,7 +46,21 @@ def load_real_data():
     return [X, trainy]
 
 
-def generate_real_samples(dataset, n_samples):
+def load_real_data():
+    # emulation dataset loading
+    train_data_keras = datagen.flow_from_directory(directory=train_dir,
+                                                   class_mode='categorical',
+                                                   batch_size=1,  # 16 images at a time
+                                                   target_size=(28, 28),
+                                                   color_mode='grayscale')  # Resize images
+    # split into images and labels
+    images, labels = next(train_data_keras)
+    size = train_data_keras.samples
+    images = numpy.zeros([size, images[0][0].size, images[0][0].size, 1])
+    return [images, labels]
+
+
+def generate_real_samples_old(dataset, n_samples):
     # split into images and labels
     images, labels = dataset
     # choose random instances
@@ -47,8 +72,26 @@ def generate_real_samples(dataset, n_samples):
     return [X, labels], y
 
 
+def generate_real_samples(dataset, n_samples):
+    train_data_keras = datagen.flow_from_directory(directory=train_dir,
+                                                   class_mode='sparse',
+                                                   batch_size=n_samples,  # 16 images at a time
+                                                   target_size=(28, 28),
+                                                   color_mode='grayscale')  # Resize images
+    # split into images and labels
+    images, labels = next(train_data_keras)
+    # labels = numpy.argmax(labels, axis=-1)
+    # convert from ints to floats
+    images = images.astype('float32')
+    # scale from [0,255] to [-1,1]
+    images = (images - 127.5) / 127.5
+    # generate class labels
+    y = -ones((n_samples, 1))
+    return [images, labels.astype(int)], y
+
+
 # generate points in latent space as input for the generator
-def generate_latent_points(latent_dim, n_samples, n_classes=10):
+def generate_latent_points(latent_dim, n_samples, n_classes=dataset_labels):
     # generate points in the latent space
     x_input = randn(latent_dim * n_samples)
     # reshape into a batch of inputs for the network
@@ -102,3 +145,13 @@ class FashionLabel(IntEnum):
     Sneaker = 7
     Bag = 8
     Ankle_boot = 9
+
+class CancerLabel(IntEnum):
+    akiec = 0
+    bcc = 1
+    bkl = 2
+    df = 3
+    mel = 4
+    nv = 5
+    vasc = 6
+
