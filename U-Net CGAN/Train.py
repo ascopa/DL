@@ -87,8 +87,10 @@ latent_dim = 100
 dataset = Utils.load_real_data()
 # create the discriminator
 d_model = Nets.define_discriminator(dataset[0][0].shape, Utils.dataset_labels)
+d_model.summary()
 # create the generator
 g_model = Nets.define_generator(latent_dim, Utils.dataset_labels)
+g_model.summary()
 # create the gan
 gan_model = Nets.define_gan(g_model, d_model)
 # train model

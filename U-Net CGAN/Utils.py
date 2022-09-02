@@ -13,7 +13,7 @@ from keras.datasets.fashion_mnist import load_data
 from numpy.random import randint
 from numpy.random import randn
 
-image_size = 128
+image_size = 224
 noise_size = 400
 dataset_labels = 7
 # img_dir_source = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "augmented",
@@ -51,7 +51,7 @@ def load_real_data():
     train_data_keras = datagen.flow_from_directory(directory=train_dir,
                                                    class_mode='categorical',
                                                    batch_size=1,  # 16 images at a time
-                                                   target_size=(28, 28),
+                                                   target_size=(image_size, image_size),
                                                    color_mode='grayscale')  # Resize images
     # split into images and labels
     images, labels = next(train_data_keras)
@@ -76,7 +76,7 @@ def generate_real_samples(dataset, n_samples):
     train_data_keras = datagen.flow_from_directory(directory=train_dir,
                                                    class_mode='sparse',
                                                    batch_size=n_samples,  # 16 images at a time
-                                                   target_size=(28, 28),
+                                                   target_size=(image_size, image_size),
                                                    color_mode='grayscale')  # Resize images
     # split into images and labels
     images, labels = next(train_data_keras)

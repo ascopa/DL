@@ -7,6 +7,7 @@ from keras.layers import Input, Dense, Concatenate, ReLU, Conv2D, Conv2DTranspos
 from keras.models import Model
 from keras.optimizer_v1 import RMSprop
 from tensorflow import Tensor, keras
+import densenet121
 
 
 def relu_bn(inputs: Tensor) -> Tensor:
@@ -36,79 +37,56 @@ class ClipConstraint(Constraint):
     def get_config(self):
         return {'clip_value': self.clip_value}
 
+def up_scaling_layer(x, n_filters):
+    x = Conv2DTranspose(n_filters, (1, 1), strides=(0.5, 0.5), padding='same')(x)
+    x = LeakyReLU(alpha=0.2)(x)
+    x = BatchNormalization()(x)
+    x = Dropout()(x)
+    return x
 
-# define the standalone generator model
-def define_generator(latent_dim, n_classes):
-    # weight initialization
-    init = RandomNormal(stddev=0.02)
-    # label input
-    in_label = Input(shape=(1,))
-    # embedding for categorical input
-    li = Embedding(n_classes, 50)(in_label)
-    # linear multiplication
-    n_nodes = 7 * 7
-    li = Dense(n_nodes)(li)
-    # reshape to additional channel
-    li = Reshape((7, 7, 1))(li)
-    # image generator input
-    in_lat = Input(shape=(latent_dim,))
-    # foundation for 7x7 image
-    n_nodes = 128 * 7 * 7
-    gen = Dense(n_nodes)(in_lat)
-    gen = LeakyReLU(alpha=0.2)(gen)
-    gen = Reshape((7, 7, 128))(gen)
-    # merge image gen and label input
-    merge = Concatenate()([gen, li])
-    # upsample to 14x14
-    gen = Conv2DTranspose(128, (4, 4), strides=(2, 2), padding='same', kernel_initializer=init)(merge)
-    gen = LeakyReLU(alpha=0.2)(gen)
-    # upsample to 28x28
-    gen = Conv2DTranspose(128, (4, 4), strides=(2, 2), padding='same', kernel_initializer=init)(gen)
-    gen = LeakyReLU(alpha=0.2)(gen)
-    # output
-    out_layer = Conv2D(1, (7, 7), activation='tanh', padding='same', kernel_initializer=init)(gen)
-    # define model
+
+def down_scaling_layer(x, n_filters):
+    x = Conv2D(n_filters, (1, 1), strides=(2, 2), padding='same')(x)
+    x = LeakyReLU(alpha=0.2)(x)
+    x = BatchNormalization()(x)
+    x = Dropout()(x)
+    return x
+
+
+def resNet_layer(x, n_filters, scaling):
+    x = Conv2D(n_filters, (1, 1), strides=(3, 3), padding='same')(x)
+    x = Conv2D(n_filters, (1, 1), strides=(3, 3), padding='same')(x)
+    x = Conv2D(n_filters, (1, 1), strides=(3, 3), padding='same')(x)
+    x = Conv2D(n_filters, (1, 1), strides=(3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    if scaling == 'up':
+        x = up_scaling_layer(x, n_filters)
+    else:
+        x = down_scaling_layer(x, n_filters)
+    return x
+
+
+def define_generator(latent_dim, input_shape, n_classes):
+    n_filters = 3
+    input_layer = Input(shape=input_shape)
+
+    x = resNet_layer(input_layer, n_filters, 'down')
+    x = resNet_layer(input_layer, n_filters, 'down')
+    x = resNet_layer(input_layer, n_filters, 'down')
+    x = resNet_layer(input_layer, n_filters, 'down')
+    x = resNet_layer(input_layer, n_filters, 'up')
+    x = resNet_layer(input_layer, n_filters, 'up')
+    x = resNet_layer(input_layer, n_filters, 'up')
+    x = resNet_layer(input_layer, n_filters, 'up')
+
     model = Model([in_lat, in_label], out_layer)
     return model
 
 def define_discriminator(in_shape, n_classes):
-    # label input
-    filters = 128
-    kernel = 3
-    stride = 2
-    # weight initialization
-    init = RandomNormal(stddev=0.02)
-    # weight constraint
-    const = ClipConstraint(0.01)
-    in_label = Input(shape=(1,))
-    # embedding for categorical input
-    li = Embedding(n_classes, 50)(in_label)
-    # scale up to image dimensions with linear activation
-    n_nodes = in_shape[0] * in_shape[1]
-    li = Dense(n_nodes)(li)
-    # reshape to additional channel
-    li = Reshape((in_shape[0], in_shape[1], 1))(li)
-    # image input
-    in_image = Input(shape=in_shape)
-    # concat label as a channel
-    merge = Concatenate()([in_image, li])
-    # downsample
-    fe = Conv2D(filters, (kernel, kernel), strides=(stride, stride), padding='same', kernel_constraint=const, kernel_initializer=init)(merge)
-    fe = LeakyReLU(alpha=0.2)(fe)
-    # downsample
-    fe = Conv2D(filters, (kernel, kernel), strides=(stride, stride), padding='same', kernel_constraint=const, kernel_initializer=init)(fe)
-    fe = LeakyReLU(alpha=0.2)(fe)
-    # flatten feature maps
-    fe = Flatten()(fe)
-    # dropout
-    fe = Dropout(0.4)(fe)
-    # output
-    out_layer = Dense(1, activation='linear')(fe)
-    # define model
-    model = Model([in_image, in_label], out_layer)
-    # compile model
-    opt = keras.optimizers.RMSprop(learning_rate=0.00005)
-    model.compile(loss=wasserstein_loss, optimizer=opt)
+    model = densenet121.DenseNet(reduction=0.5, classes=7)
+
+    sgd = keras.optimizers.SGD(lr=1e-2, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
     return model
 
 # define the combined generator and discriminator model, for updating the generator
