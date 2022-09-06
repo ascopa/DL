@@ -85,11 +85,12 @@ def summarize_performance(epoch, g_model, d_model, dataset, n_samples=15):
 latent_dim = 100
 # load image data
 dataset = Utils.load_real_data()
+image_shape = dataset[0][0].shape
 # create the discriminator
-d_model = Nets.define_discriminator(dataset[0][0].shape, Utils.dataset_labels)
+d_model = Nets.define_discriminator(image_shape, Utils.dataset_labels)
 d_model.summary()
 # create the generator
-g_model = Nets.define_generator(latent_dim, Utils.dataset_labels)
+g_model = Nets.define_generator(latent_dim, image_shape, Utils.dataset_labels)
 g_model.summary()
 # create the gan
 gan_model = Nets.define_gan(g_model, d_model)

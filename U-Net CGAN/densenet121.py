@@ -1,15 +1,15 @@
-from keras.models import Model
-from keras.layers import Input, merge, ZeroPadding2D, Concatenate
-from keras.layers.core import Dense, Dropout, Activation
-from keras.layers.convolutional import Convolution2D
-from keras.layers.pooling import AveragePooling2D, GlobalAveragePooling2D, MaxPooling2D
-from keras.layers import BatchNormalization
 import keras.backend as K
+from keras.layers import BatchNormalization
+from keras.layers import ZeroPadding2D, Concatenate
+from keras.layers.convolutional import Convolution2D
+from keras.layers.core import Dense, Dropout, Activation
+from keras.layers.pooling import AveragePooling2D, GlobalAveragePooling2D, MaxPooling2D
+from keras.models import Model
 
 from custom_layers import Scale
 
 
-def DenseNet(nb_dense_block=4, growth_rate=32, nb_filter=64, reduction=0.0, dropout_rate=0.0, weight_decay=1e-4,
+def DenseNet(img_input_layer, img_n_label_input_layer, label_input_layer, nb_dense_block=4, growth_rate=32, nb_filter=64, reduction=0.0, dropout_rate=0.0, weight_decay=1e-4,
              classes=1000, weights_path=None):
     """Instantiate the DenseNet 121 architecture,
         # Arguments
@@ -33,10 +33,12 @@ def DenseNet(nb_dense_block=4, growth_rate=32, nb_filter=64, reduction=0.0, drop
     global concat_axis
     if K.image_data_format() == 'channels_last': # Tensorflow
         concat_axis = 3
-        img_input = Input(shape=(224, 224, 3), name='data')
+        # img_input = Input(shape=(224, 224, 3), name='data')
+        img_input = img_n_label_input_layer
     else: # Theano
         concat_axis = 1
-        img_input = Input(shape=(3, 224, 224), name='data')
+        # img_input = Input(shape=(3, 224, 224), name='data')
+        img_input = img_n_label_input_layer
 
     # From architecture for ImageNet (Table 1 in the paper)
     nb_filter = 64
@@ -72,9 +74,9 @@ def DenseNet(nb_dense_block=4, growth_rate=32, nb_filter=64, reduction=0.0, drop
     x = GlobalAveragePooling2D(name='pool' + str(final_stage))(x)
 
     x = Dense(classes, name='fc6')(x)
-    x = Activation('softmax', name='prob')(x)
+    x = Activation('sigmoid', name='prob')(x)
 
-    model = Model(img_input, x, name='densenet')
+    model = Model(inputs=[img_input_layer, label_input_layer], outputs=x, name='densenet')
 
     if weights_path is not None:
         model.load_weights(weights_path)

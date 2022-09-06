@@ -2,14 +2,11 @@ import os
 
 import numpy
 import numpy as np
-from PIL import Image
+from keras.datasets.fashion_mnist import load_data
 from keras_preprocessing.image import ImageDataGenerator
 from matplotlib import pyplot
 from numpy import expand_dims
 from numpy import ones
-from numpy import zeros
-from numpy import expand_dims
-from keras.datasets.fashion_mnist import load_data
 from numpy.random import randint
 from numpy.random import randn
 
@@ -131,7 +128,7 @@ def save_plot(examples, epoch, n=10):
     pyplot.close()
 
 
-from enum import Enum, IntEnum
+from enum import IntEnum
 
 
 class FashionLabel(IntEnum):
@@ -154,4 +151,3 @@ class CancerLabel(IntEnum):
     mel = 4
     nv = 5
     vasc = 6
-
