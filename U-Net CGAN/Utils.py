@@ -57,19 +57,7 @@ def load_real_data():
     return [images, labels]
 
 
-def generate_real_samples_old(dataset, n_samples):
-    # split into images and labels
-    images, labels = dataset
-    # choose random instances
-    ix = randint(0, images.shape[0], n_samples)
-    # select images and labels
-    X, labels = images[ix], labels[ix]
-    # generate class labels
-    y = -ones((n_samples, 1))
-    return [X, labels], y
-
-
-def generate_real_samples(dataset, n_samples):
+def get_images_and_labels(n_samples):
     train_data_keras = datagen.flow_from_directory(directory=train_dir,
                                                    class_mode='sparse',
                                                    batch_size=n_samples,  # 16 images at a time
@@ -83,27 +71,26 @@ def generate_real_samples(dataset, n_samples):
     # scale from [0,255] to [-1,1]
     images = (images - 127.5) / 127.5
     # generate class labels
+    return images, labels.astype(int)
+
+
+def generate_real_samples(n_samples):
+    images, labels = get_images_and_labels(n_samples)
+    # generate class labels
     y = -ones((n_samples, 1))
     return [images, labels.astype(int)], y
 
 
-# generate points in latent space as input for the generator
-def generate_latent_points(latent_dim, n_samples, n_classes=dataset_labels):
-    # generate points in the latent space
-    x_input = randn(latent_dim * n_samples)
-    # reshape into a batch of inputs for the network
-    z_input = x_input.reshape(n_samples, latent_dim)
-    # generate labels
-    labels = randint(0, n_classes, n_samples)
-    return [z_input, labels]
+def get_noise(latent_dim, n_samples):
+    return randn(latent_dim * n_samples).reshape(n_samples, latent_dim)
 
 
 # use the generator to generate n fake examples, with class labels
 def generate_fake_samples(generator, latent_dim, n_samples):
-    # generate points in latent space
-    z_input, labels_input = generate_latent_points(latent_dim, n_samples)
+    img_input, labels_input = get_images_and_labels(n_samples)
+    z_input = get_noise(latent_dim, n_samples)
     # predict outputs
-    images = generator.predict([z_input, labels_input])
+    images = generator.predict([img_input, labels_input, z_input])
     # create class labels
     y = ones((n_samples, 1))
     return [images, labels_input], y
@@ -143,6 +130,7 @@ class FashionLabel(IntEnum):
     Bag = 8
     Ankle_boot = 9
 
+
 class CancerLabel(IntEnum):
     akiec = 0
     bcc = 1
@@ -151,3 +139,5 @@ class CancerLabel(IntEnum):
     mel = 4
     nv = 5
     vasc = 6
+
+

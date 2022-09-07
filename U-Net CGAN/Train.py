@@ -19,7 +19,7 @@ def plot_history(d1_hist, d2_hist, g_hist):
 
 
 # train the generator and discriminator
-def train(g_model, d_model, gan_model, dataset, latent_dim, n_epochs=100, n_batch=128):
+def train(g_model, d_model, gan_model, latent_dim, n_epochs=100, n_batch=128):
     bat_per_epo = int(dataset[0].shape[0] / n_batch)
     half_batch = int(n_batch / 2)
     n_critic = 5
@@ -30,26 +30,26 @@ def train(g_model, d_model, gan_model, dataset, latent_dim, n_epochs=100, n_batc
     for i in range(n_steps):
         # update the critic more than the generator
         c1_tmp, c2_tmp = list(), list()
-        for _ in range(n_critic):
-            # get randomly selected 'real' samples
-            [X_real, labels_real], y_real = Utils.generate_real_samples(dataset, half_batch)
-            # update critic model weights
-            c_loss1 = d_model.train_on_batch([X_real, labels_real], y_real)
-            c1_tmp.append(c_loss1)
-            # generate 'fake' examples
-            [X_fake, labels_fake], y_fake = Utils.generate_fake_samples(g_model, latent_dim, half_batch)
-            # update critic model weights
-            c_loss2 = d_model.train_on_batch([X_fake, labels_fake], y_fake)
-            c2_tmp.append(c_loss2)
+        # for _ in range(n_critic):
+        # get randomly selected 'real' samples
+        [X_real, labels_real], y_real = Utils.generate_real_samples(half_batch)
+        # update critic model weights
+        c_loss1 = d_model.train_on_batch([X_real, labels_real], y_real)
+        c1_tmp.append(c_loss1)
+        # generate 'fake' examples
+        [X_fake, labels_fake], y_fake = Utils.generate_fake_samples(g_model, latent_dim, half_batch)
+        # update critic model weights
+        c_loss2 = d_model.train_on_batch([X_fake, labels_fake], y_fake)
+        c2_tmp.append(c_loss2)
         # store critic loss
         c1_hist.append(mean(c1_tmp))
         c2_hist.append(mean(c2_tmp))
         # prepare points in latent space as input for the generator
-        [z_input, labels_input] = Utils.generate_latent_points(latent_dim, n_batch)
-        # create inverted labels for the fake samples
-        y_gan = -ones((n_batch, 1))
+        img_input, labels_input, y_gan = X_real, labels_real, y_real
+        # img_input, labels_input, y_gan = Utils.generate_real_samples(n_batch)
+        z_input = Utils.get_noise(latent_dim, n_batch)
         # update the generator via the critic's error
-        g_loss = gan_model.train_on_batch([z_input, labels_input], y_gan)
+        g_loss = gan_model.train_on_batch([img_input, labels_input, z_input], y_gan)
         g_hist.append(g_loss)
         # summarize loss on this batch
         print('>%d/%d, c1=%.3f, c2=%.3f g=%.3f' % (i + 1, n_steps, c1_hist[-1], c2_hist[-1], g_loss))
@@ -61,7 +61,7 @@ def train(g_model, d_model, gan_model, dataset, latent_dim, n_epochs=100, n_batc
 
 
 # evaluate the discriminator, plot generated images, save generator model
-def summarize_performance(epoch, g_model, d_model, dataset, n_samples=15):
+def summarize_performance(epoch, g_model, d_model, n_samples=15):
     # prepare real samples
     # X_real, y_real = Utils.generate_real_samples(dataset, n_samples)
     # # evaluate discriminator on real examples
@@ -95,4 +95,4 @@ g_model.summary()
 # create the gan
 gan_model = Nets.define_gan(g_model, d_model)
 # train model
-train(g_model, d_model, gan_model, dataset, latent_dim)
+train(g_model, d_model, gan_model, latent_dim)
