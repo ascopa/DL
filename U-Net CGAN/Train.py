@@ -4,6 +4,7 @@ from numpy import ones, mean
 
 import Nets
 import Utils
+import tensorflow as tf
 from matplotlib import pyplot as plt
 
 
@@ -27,23 +28,32 @@ def train(g_model, d_model, gan_model, latent_dim, n_epochs=100, n_batch=128):
     c1_hist, c2_hist, g_hist = list(), list(), list()
     # calculate the number of training iterations
     n_steps = bat_per_epo * n_epochs
+    X_real, labels_real, y_real = [], [], []
     for i in range(n_steps):
         # update the critic more than the generator
         c1_tmp, c2_tmp = list(), list()
-        # for _ in range(n_critic):
-        # get randomly selected 'real' samples
-        [X_real, labels_real], y_real = Utils.generate_real_samples(half_batch)
-        # update critic model weights
-        c_loss1 = d_model.train_on_batch([X_real, labels_real], y_real)
-        c1_tmp.append(c_loss1)
-        # generate 'fake' examples
-        [X_fake, labels_fake], y_fake = Utils.generate_fake_samples(g_model, latent_dim, half_batch)
-        # update critic model weights
-        c_loss2 = d_model.train_on_batch([X_fake, labels_fake], y_fake)
-        c2_tmp.append(c_loss2)
-        # store critic loss
-        c1_hist.append(mean(c1_tmp))
-        c2_hist.append(mean(c2_tmp))
+        for _ in range(n_critic):
+            # get randomly selected 'real' samples
+            [X_real, labels_real], y_real = Utils.generate_real_samples(half_batch)
+            # update critic model weights
+            c_loss1 = d_model.train_on_batch([X_real, labels_real], y_real)
+            c1_tmp.append(c_loss1)
+            # generate 'fake' examples
+            [X_fake, labels_fake], y_fake = Utils.generate_fake_samples(g_model, latent_dim, half_batch)
+            # update critic model weights
+            c_loss2 = d_model.train_on_batch([X_fake, labels_fake], y_fake)
+            c2_tmp.append(c_loss2)
+            # store critic loss
+            c1_hist.append(mean(c1_tmp))
+            c2_hist.append(mean(c2_tmp))
+
+            for l in d_model.layers:
+                weights = l.get_weights()
+                print("Unclipped weights ", weights)
+                weights = [tf.clip_by_value(w, -Utils.clip_value, Utils.clip_value) for w in weights]
+                l.set_weights(weights)
+                print("Clipped weights ", l.get_weights)
+
         # prepare points in latent space as input for the generator
         img_input, labels_input, y_gan = X_real, labels_real, y_real
         # img_input, labels_input, y_gan = Utils.generate_real_samples(n_batch)

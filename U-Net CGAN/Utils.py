@@ -13,12 +13,8 @@ from numpy.random import randn
 image_size = 224
 noise_size = 400
 dataset_labels = 7
-# img_dir_source = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "Drive", "augmented",
-#                               "drive_data_" + str(image_size) + ".npy")
-#
-#
-# def get_real_data():
-#     return numpy.load(img_dir_source)
+clip_value = 0.01
+
 
 # Define datagen. Here we can define any transformations we want to apply to images
 datagen = ImageDataGenerator()
@@ -26,9 +22,6 @@ datagen = ImageDataGenerator()
 # define training directory that contains subfolders
 train_dir = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "HAM10000", "data",
                          "reorganized")
-
-
-# USe flow_from_directory
 
 
 def load_real_data_old():
@@ -78,7 +71,7 @@ def generate_real_samples(n_samples):
     images, labels = get_images_and_labels(n_samples)
     # generate class labels
     y = -ones((n_samples, 1))
-    return [images, labels.astype(int)], y
+    return [images, labels], y
 
 
 def get_noise(latent_dim, n_samples):

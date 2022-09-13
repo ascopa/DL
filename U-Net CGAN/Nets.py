@@ -16,6 +16,8 @@ def relu_bn(inputs: Tensor) -> Tensor:
 
 
 drop_out_rate = 0.5
+
+
 w_initializer = tf.keras.initializers.TruncatedNormal(mean=0., stddev=0.02)
 
 
@@ -142,8 +144,8 @@ def define_discriminator(input_shape, n_classes):
 
     model = densenet121.DenseNet(img_input_layer, img_n_label_input_layer, label_input_layer, reduction=0.5, classes=1)
 
-    sgd = keras.optimizers.SGD(learning_rate=1e-2, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(optimizer=sgd, loss='binary_crossentropy', metrics=['accuracy'])
+    opt = keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.99)
+    model.compile(optimizer=opt, loss=wasserstein_loss, metrics=['accuracy'])
     return model
 
 
@@ -163,14 +165,7 @@ def define_gan(g_model, d_model):
     # define gan model as taking img, noise and label and outputting a classification
     model = Model([gen_img, gen_label, gen_noise], gan_output)
     # compile model
-    opt = keras.optimizers.Adam(learning_rate=0.0001, beta_1=0, beta_2=0.9)
-    model.compile(loss='binary_crossentropy', optimizer=opt)
+    opt = keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.99)
+    model.compile(loss=wasserstein_loss, optimizer=opt)
     return model
 
-# def gan(gen, dis):
-#     # make weights in the discriminator not trainable
-#     dis.trainable = False
-#     model = Model(inputs=gen.input, outputs=dis(gen.output))
-#     opt = keras.optimizers.RMSprop(learning_rate=0.00005)
-#     model.compile(optimizer=opt, loss=wasserstein_loss, metrics=['accuracy'])
-#     return model
