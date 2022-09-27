@@ -10,9 +10,8 @@ from numpy import ones, zeros
 import Utils
 
 # Params to modify before testing
-model_to_test = 'gen_model_7800.h5'
-# item_label = Utils.FashionLabel.Coat
-item_label = Utils.CancerLabel.akiec
+model_to_test = 'gen_model_936.h5'
+item_label = Utils.CancerLabel.nv
 
 # Create and save files of test execution
 now = datetime.now()
@@ -46,21 +45,16 @@ channel = 1
 latent_dim = 100
 
 # generate images
-real_images = Utils.load_real_data()
-[z_input, _] = Utils.generate_latent_points(latent_dim, samples)
+
+z_input = Utils.get_noise(latent_dim, samples)
+
+real_images, _ = Utils.get_images_and_labels(samples)
+
 labels_input = ones((samples, 1)) * item_label
-fake_images = generator_model.predict([z_input, labels_input], Utils.dataset_labels)
-y_real = ones((samples, 1))
-y_fake = zeros((samples, 1))
 
-# #predict
-# _, real_images_acc = discriminator_model.evaluate(real_images[0:samples], y_real)
-# _, fake_images_acc = discriminator_model.evaluate(fake_images, y_fake)
+fake_images = generator_model.predict([real_images, labels_input, z_input])
+
+# save generated images
 numpy.save("generated_images", fake_images)
-
-# print("real acc:" + str(real_images_acc))
-# print("fake acc:" + str(fake_images_acc))
-
-
 # plot the result
 save_plot(numpy.load("generated_images.npy"), samples)
