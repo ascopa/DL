@@ -81,9 +81,11 @@ def representation_layer(layer, noise_input):
     stride = 2
     kernel = 4
 
-    dense = Dense(7 * 7 * filter, kernel_initializer=w_initializer)(noise_input)
+    noise_block_size = int(layer.shape[1] / 2)
 
-    reshape = Reshape((7, 7, filter))(dense)
+    dense = Dense(noise_block_size * noise_block_size * filter, kernel_initializer=w_initializer)(noise_input)
+
+    reshape = Reshape((noise_block_size, noise_block_size, filter))(dense)
 
     noise_conv = Conv2DTranspose(kernel_size=kernel,
                                  strides=stride,

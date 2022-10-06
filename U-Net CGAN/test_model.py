@@ -10,7 +10,7 @@ from numpy import ones, zeros
 import Utils
 
 # Params to modify before testing
-model_to_test = 'gen_model_936.h5'
+model_to_test = 'gen_model_4446.h5'
 item_label = Utils.CancerLabel.nv
 
 # Create and save files of test execution
@@ -48,7 +48,7 @@ latent_dim = 100
 
 z_input = Utils.get_noise(latent_dim, samples)
 
-real_images, _ = Utils.get_images_and_labels(samples)
+real_images, _ = Utils.get_images_and_labels(samples, 64)
 
 labels_input = ones((samples, 1)) * item_label
 

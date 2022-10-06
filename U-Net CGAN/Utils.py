@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import numpy
 import numpy as np
@@ -10,19 +11,38 @@ from numpy import ones
 from numpy.random import randint
 from numpy.random import randn
 
-image_size = 224
-noise_size = 400
-dataset_labels = 7
-clip_value = 0.01
-
-
 # Define datagen. Here we can define any transformations we want to apply to images
 datagen = ImageDataGenerator()
 
 # define training directory that contains subfolders
 train_dir = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "datasets", "HAM10000", "data",
                          "reorganized")
+save_dir_root = os.path.join("F:", os.sep, "backup", "Facultad", "Tesis", "DL", "U-Net CGAN", "models")
 
+
+def create_save_dir():
+    run_date = datetime.today().strftime('%Y-%m-%d %H-%M')
+    save_dir_name = os.path.join(save_dir_root, run_date)
+    # check if dir already exists
+    if not os.path.isdir(save_dir_name):
+        # prepare dir
+        os.mkdir(save_dir_name, 0o666)
+    return save_dir_name
+
+
+def save_models(epoch, g_model, d_model, dir_name):
+    filename = 'dis_model_%03d.h5' % (epoch + 1)
+    d_model.save(os.path.join(dir_name, filename))
+    print("Discriminator model saved")
+    filename = 'gen_model_%03d.h5' % (epoch + 1)
+    g_model.save(os.path.join(dir_name, filename))
+    print("Generator model saved")
+
+
+# def save_hyperparams(dir_name):
+#     with open(os.path.join(dir_name, "hyperparams.txt"), 'w') as f:
+#         print(hyperparams, file=f)
+#     print("Hyperparams saved")
 
 def load_real_data_old():
     # load dataset
@@ -36,7 +56,7 @@ def load_real_data_old():
     return [X, trainy]
 
 
-def load_real_data():
+def load_real_data(image_size):
     # emulation dataset loading
     train_data_keras = datagen.flow_from_directory(directory=train_dir,
                                                    class_mode='categorical',
@@ -50,7 +70,7 @@ def load_real_data():
     return [images, labels]
 
 
-def get_images_and_labels(n_samples):
+def get_images_and_labels(n_samples, image_size):
     train_data_keras = datagen.flow_from_directory(directory=train_dir,
                                                    class_mode='sparse',
                                                    batch_size=n_samples,  # 16 images at a time
